@@ -1,0 +1,14 @@
+{
+  "name": "edge-cam-system",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Monorepo entry for edge-cam-system",
+  "scripts": {
+    "start": "npm --prefix server start",
+    "server:start": "npm --prefix server start",
+    "server:install": "npm --prefix server install",
+    "server:dev": "npm --prefix server run dev",
+    "server:check": "node --check server/src/app.js && node --check server/src/controllers/deviceController.js && node --check server/src/controllers/eventController.js && node --check server/src/services/cleanupService.js",
+    "doctor": "node scripts/doctor.js"
+  }
+}
