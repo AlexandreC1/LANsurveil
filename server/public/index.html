@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edge Cam Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1rem; background: #0f172a; color: #e2e8f0; }
+    .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    select, input, button { padding: 0.5rem; border-radius: 0.4rem; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #334155; padding: 0.5rem; text-align: left; }
+    .video { margin-top: 1rem; width: 100%; max-width: 700px; }
+    a { color: #7dd3fc; }
+  </style>
+</head>
+<body>
+  <h1>Edge Cam Dashboard</h1>
+  <div class="controls">
+    <label>Device
+      <select id="deviceSelect"><option value="">All</option></select>
+    </label>
+    <label>Date
+      <input id="dateInput" type="date" />
+    </label>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Timestamp</th><th>Device</th><th>Type</th><th>Video</th></tr>
+    </thead>
+    <tbody id="eventsBody"></tbody>
+  </table>
+
+  <video id="player" class="video" controls></video>
+
+  <script>
+    const deviceSelect = document.getElementById('deviceSelect');
+    const dateInput = document.getElementById('dateInput');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const eventsBody = document.getElementById('eventsBody');
+    const player = document.getElementById('player');
+
+    const devicesById = {};
+
+    async function fetchDevices() {
+      const res = await fetch('/api/v1/devices');
+      const devices = await res.json();
+      devices.forEach((d) => { devicesById[d.id] = d; });
+      deviceSelect.innerHTML = '<option value="">All</option>';
+      devices.forEach((d) => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.name} (${d.id.slice(0, 8)})`;
+        deviceSelect.appendChild(opt);
+      });
+    }
+
+    async function fetchEvents() {
+      const params = new URLSearchParams();
+      if (deviceSelect.value) params.set('device_id', deviceSelect.value);
+      if (dateInput.value) params.set('date', dateInput.value);
+      const res = await fetch(`/api/v1/events?${params.toString()}`);
+      const events = await res.json();
+
+      eventsBody.innerHTML = '';
+      events.forEach((event) => {
+        const tr = document.createElement('tr');
+        const deviceName = devicesById[event.device_id]?.name || event.device_id;
+        tr.innerHTML = `
+          <td>${new Date(event.timestamp).toLocaleString()}</td>
+          <td>${deviceName}</td>
+          <td>${event.type}</td>
+          <td>${event.file_url ? `<a href="${event.file_url}" data-src="${event.file_url}">play</a>` : 'pending'}</td>
+        `;
+        const link = tr.querySelector('a[data-src]');
+        if (link) {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            player.src = e.target.dataset.src;
+            player.play();
+          });
+        }
+        eventsBody.appendChild(tr);
+      });
+    }
+
+    refreshBtn.addEventListener('click', fetchEvents);
+
+    (async function init() {
+      await fetchDevices();
+      await fetchEvents();
+    })();
+  </script>
+</body>
+</html>

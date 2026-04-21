@@ -1,0 +1,20 @@
+{
+  "name": "edge-cam-server",
+  "version": "1.0.0",
+  "description": "Local-first LAN surveillance backend",
+  "main": "src/app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node src/app.js",
+    "lint": "echo 'No linter configured'"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^11.1.0"
+  }
+}
